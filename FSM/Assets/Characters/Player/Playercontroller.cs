@@ -10,7 +10,8 @@ public class Playercontroller : MonoBehaviour
     public float collisionOffset = 0.05f;
     public ContactFilter2D movementFilter;
     public SwordAttack swordAttack;
-
+    public float maxSpeed = 2.2f;
+    public float idleFriction = 0.9f;
     Vector2 movementInput;
     SpriteRenderer spriteRenderer;
     Rigidbody2D rb;
@@ -29,40 +30,25 @@ public class Playercontroller : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (canMove)
+        if (canMove == true && movementInput != Vector2.zero)
         {
-            // If movement input is not 0, try to move
-            if (movementInput != Vector2.zero)
+
+            rb.velocity = Vector2.ClampMagnitude(rb.velocity + (movementInput * moveSpeed * Time.deltaTime), maxSpeed);
+            
+            if(movementInput.x > 0)
             {
-
-                bool success = TryMove(movementInput);
-
-                if (!success)
-                {
-                    success = TryMove(new Vector2(movementInput.x, 0));
-                }
-
-                if (!success)
-                {
-                    success = TryMove(new Vector2(0, movementInput.y));
-                }
-
-                animator.SetBool("isMoving", success);
-            }
-            else
-            {
-                animator.SetBool("isMoving", false);
-            }
-
-            // Set direction of sprite to movement direction
-            if (movementInput.x < 0)
+                spriteRenderer.flipX = false;
+            } else if (movementInput.x < 0)
             {
                 spriteRenderer.flipX = true;
             }
-            else if (movementInput.x > 0)
-            {
-                spriteRenderer.flipX = false;
-            }
+
+            IsMoving = true;
+        } else
+        {
+            rb.velocity = Vector2.Lerp(rb.velocity, Vector2.zero, idleFriction);
+
+            isMoving = false;   
         }
     }
 
@@ -134,4 +120,15 @@ public class Playercontroller : MonoBehaviour
     {
         canMove = true;
     }
+    private bool isMoving = false;
+    public bool IsMoving
+    {
+        set
+        {
+            isMoving = value;
+            animator.SetBool("isMoving", value);
+        }
+
+    }
+
 }
